@@ -1,116 +1,137 @@
-package kayrahtayman;
-import org.lwjgl.*;
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
- 
 
-//Display Imports
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.system.MemoryUtil.*;
- 
-public class KayRahTayMan {
- 
-    // We need to strongly reference callback instances.
-    private GLFWErrorCallback errorCallback;
-    private GLFWKeyCallback   keyCallback;
- 
-    // The window handle
-    private long window;
- 
-    public void run() {
-        
- 
-        try {
-            init();
-            loop();
- 
-            // Release window and window callbacks
-            glfwDestroyWindow(window);
-            keyCallback.release();
-        } finally {
-            // Terminate GLFW and release the GLFWErrorCallback
-            glfwTerminate();
-            errorCallback.release();
-        }
-    }
- 
-    private void init() {
-        // Setup an error callback. The default implementation
-        // will print the error message in System.err.
-        glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
- 
-        // Initialize GLFW. Most GLFW functions will not work before doing this.
-        if ( glfwInit() != GLFW_TRUE )
-            throw new IllegalStateException("Unable to initialize GLFW");
- 
-        // Configure our window
-        glfwDefaultWindowHints(); // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
- 
-        int WIDTH = 640;
-        int HEIGHT = 480;
- 
-        // Create the window
-        window = glfwCreateWindow(WIDTH, HEIGHT, "KAY-RAH-TAY MAN", NULL, NULL);
-        if ( window == NULL )
-            throw new RuntimeException("Failed to create the GLFW window");
- 
-        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-        glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
-            @Override
-            public void invoke(long window, int key, int scancode, int action, int mods) {
-                if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
-                    glfwSetWindowShouldClose(window, GLFW_TRUE); // We will detect this in our rendering loop
-            }
-        });
- 
-        // Get the resolution of the primary monitor
-        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        // Center our window
-        glfwSetWindowPos(
-            window,
-            (vidmode.width() - WIDTH) / 2,
-            (vidmode.height() - HEIGHT) / 2
-        );
- 
-        // Make the OpenGL context current
-        glfwMakeContextCurrent(window);
-        // Enable v-sync
-        glfwSwapInterval(1);
- 
-        // Make the window visible
-        glfwShowWindow(window);
-    }
- 
-    private void loop() {
-        // This line is critical for LWJGL's interoperation with GLFW's
-        // OpenGL context, or any context that is managed externally.
-        // LWJGL detects the context that is current in the current thread,
-        // creates the GLCapabilities instance and makes the OpenGL
-        // bindings available for use.
-        GL.createCapabilities();
- 
-        // Set the clear color
-        glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
- 
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
-        while ( glfwWindowShouldClose(window) == GLFW_FALSE ) {
-            
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
- 
-            glfwSwapBuffers(window); // swap the color buffers
- 
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
-        }
-    }
- 
-    public static void main(String[] args) {
-        new KayRahTayMan().run();
-    }
- 
+
+package com.gdx.game;
+
+import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.ControllerListener;
+import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.controllers.PovDirection;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
+public class KayRahTayMan extends ApplicationAdapter {
+	SpriteBatch batch;
+	Texture img;
+        BitmapFont font;
+        Sprite redSquare;
+        Controller controller;
+        boolean hasControllers = true;
+        float redSqrXspd = 0.0f;
+        float xFriction = 0.10f;
+        float redSqrYspd = 0.0f;
+        boolean canSpace = true;
+        boolean inAir = false;
+        int jumps = 4; 
+        String concat;
+	
+	@Override
+	public void create () {
+		batch = new SpriteBatch();
+		img = new Texture("redSquare.png");
+                redSquare = new Sprite(img);
+                font = new BitmapFont();
+                font.setColor(Color.BLUE);
+                // checks if a controller is plugged in, if not makes the terminal tell
+		// you so
+		if (Controllers.getControllers().size == 0) {
+			hasControllers = false;
+		} else {
+			controller = Controllers.getControllers().first();
+                }
+	}
+
+	@Override
+	public void render () {
+                //dunno exactly what this does
+		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                
+                //POLL EVENTS
+                  //Poll for A pressed to move left
+                 if (Gdx.input.isKeyPressed(Input.Keys.A)||controller.getAxis(XBoxOnePad.AXIS_LEFT_X) < -0.2f) {
+                    if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
+                             redSqrXspd = 0.0f;
+                        } else {
+                             redSqrXspd = -5.0f;
+                        }
+                }
+                  //Poll for D pressed to move right
+                if (Gdx.input.isKeyPressed(Input.Keys.D)||controller.getAxis(XBoxOnePad.AXIS_LEFT_X) > 0.2f) {
+                    if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
+                             redSqrXspd = 0.0f;
+                        } else {
+                             redSqrXspd = 5.0f;
+                        }
+                }
+                  //Poll for Space pressed to jump
+                if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)||controller.getButton(XBoxOnePad.BUTTON_A)) {
+                    if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
+                             redSqrYspd = 0.0f;
+                        } else {
+                        
+                            if(jumps > 0){
+                             System.out.println(jumps);
+                             redSqrYspd = 10.0f;
+                             
+                                jumps--;
+                                
+                            }
+                        
+                        }
+                }
+                
+                
+                //END POLL EVENTS
+                
+		batch.begin();
+                
+                //draw the Sprite 
+		redSquare.draw(batch);
+                
+                //draw text "OK BUB" to the screen
+                concat = ""+jumps;
+                font.draw(batch, concat, 32, 440);
+                
+                //update X speed
+                if(redSqrXspd > 0){
+                    redSqrXspd -= 0.5;
+                } else if (redSqrXspd < 0){
+                    redSqrXspd += 0.5f;
+                }
+                else if (redSqrXspd < 0.5 && redSqrXspd > -0.5){
+                    redSqrXspd = 0;
+                }
+                
+                //update Y speed
+                if(redSquare.getY() > 0){
+                    inAir = true;
+                    redSqrYspd -= 0.5f;
+                }  
+                if (redSquare.getY() <= 0){
+                    if(redSquare.getY() < 0){
+                        redSquare.setY(0.0f);
+                    }
+                    if(inAir == true){
+                        
+                        redSqrYspd = 0.0f;
+                        jumps = 4;
+                        inAir = false;
+                    }
+                }
+                
+                
+                
+                //update x and y location
+                redSquare.translateX(redSqrXspd);
+                redSquare.translateY(redSqrYspd);
+		batch.end();
+	}
 }
