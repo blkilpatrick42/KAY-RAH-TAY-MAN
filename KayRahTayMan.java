@@ -24,19 +24,18 @@ public class KayRahTayMan extends ApplicationAdapter {
         Sprite redSquare;
         Controller controller;
         boolean hasControllers = true;
-        float redSqrXspd = 0.0f;
-        float xFriction = 0.10f;
-        float redSqrYspd = 0.0f;
+        
+        //Declaration of the player object
+        Player player;
+        
         boolean canSpace = true;
-        boolean inAir = false;
-        int jumps = 4; 
+        
         String concat;
 	
 	@Override
 	public void create () {
+                
 		batch = new SpriteBatch();
-		img = new Texture("redSquare.png");
-                redSquare = new Sprite(img);
                 font = new BitmapFont();
                 font.setColor(Color.BLUE);
                 // checks if a controller is plugged in, if not makes the terminal tell
@@ -46,6 +45,7 @@ public class KayRahTayMan extends ApplicationAdapter {
 		} else {
 			controller = Controllers.getControllers().first();
                 }
+                player = new Player(240,240);
 	}
 
 	@Override
@@ -56,34 +56,28 @@ public class KayRahTayMan extends ApplicationAdapter {
                 
                 //POLL EVENTS
                   //Poll for A pressed to move left
-                 if (Gdx.input.isKeyPressed(Input.Keys.A)||controller.getAxis(XBoxOnePad.AXIS_LEFT_X) < -0.2f) {
+                 if (Gdx.input.isKeyPressed(Input.Keys.A)){//||controller.getAxis(XBoxOnePad.AXIS_LEFT_X) < -0.2f) {
                     if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
-                             redSqrXspd = 0.0f;
+                             player.setXspd(0.0f);
                         } else {
-                             redSqrXspd = -5.0f;
+                             player.setXspd(-5.0f);
                         }
                 }
                   //Poll for D pressed to move right
-                if (Gdx.input.isKeyPressed(Input.Keys.D)||controller.getAxis(XBoxOnePad.AXIS_LEFT_X) > 0.2f) {
+                if (Gdx.input.isKeyPressed(Input.Keys.D)){//||controller.getAxis(XBoxOnePad.AXIS_LEFT_X) > 0.2f) {
                     if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
-                             redSqrXspd = 0.0f;
+                             player.setXspd(0.0f);
                         } else {
-                             redSqrXspd = 5.0f;
+                             player.setXspd(5.0f);
                         }
                 }
                   //Poll for Space pressed to jump
-                if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)||controller.getButton(XBoxOnePad.BUTTON_A)) {
+                if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){//controller.getButton(XBoxOnePad.BUTTON_A)) {
                     if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
-                             redSqrYspd = 0.0f;
+                             player.setYspd(0.0f);
                         } else {
                         
-                            if(jumps > 0){
-                             System.out.println(jumps);
-                             redSqrYspd = 10.0f;
-                             
-                                jumps--;
-                                
-                            }
+                            player.jump();
                         
                         }
                 }
@@ -93,45 +87,15 @@ public class KayRahTayMan extends ApplicationAdapter {
                 
 		batch.begin();
                 
-                //draw the Sprite 
-		redSquare.draw(batch);
+                //draw the Player Sprite 
+		player.getLocalSprite().draw(batch);
                 
                 //draw text "OK BUB" to the screen
-                concat = ""+jumps;
+                concat = "OK BUB"+player.getJumps();
                 font.draw(batch, concat, 32, 440);
                 
-                //update X speed
-                if(redSqrXspd > 0){
-                    redSqrXspd -= 0.5;
-                } else if (redSqrXspd < 0){
-                    redSqrXspd += 0.5f;
-                }
-                else if (redSqrXspd < 0.5 && redSqrXspd > -0.5){
-                    redSqrXspd = 0;
-                }
+                player.update();
                 
-                //update Y speed
-                if(redSquare.getY() > 0){
-                    inAir = true;
-                    redSqrYspd -= 0.5f;
-                }  
-                if (redSquare.getY() <= 0){
-                    if(redSquare.getY() < 0){
-                        redSquare.setY(0.0f);
-                    }
-                    if(inAir == true){
-                        
-                        redSqrYspd = 0.0f;
-                        jumps = 4;
-                        inAir = false;
-                    }
-                }
-                
-                
-                
-                //update x and y location
-                redSquare.translateX(redSqrXspd);
-                redSquare.translateY(redSqrYspd);
 		batch.end();
 	}
 }
