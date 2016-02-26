@@ -5,14 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class Player {
 
-    //the name of the file of the
-    //player sprite in assets
-    private String spriteFile = "redSquare.png";
 
-    //Texture containing the image
-    //information for the local
-    //Player Sprite
-    private Texture spriteTexture;
 
     // sprite kept locally
     //to represent the player
@@ -41,6 +34,8 @@ public class Player {
     //The rate at which friction is applied to the player.
     //ie how quickly xSpd is decremented
     float xFriction = 0.10f;
+    
+    private SpriteAnimate playerAnimate  = new SpriteAnimate(this);
 
     //The CONTSTRUCTOR for the Player object
     //@param the value to set logicalX upon
@@ -49,8 +44,7 @@ public class Player {
     public Player(int startX, int startY) {
         setLogicalX(startX);
         setLogicalY(startY);
-        spriteTexture = new Texture(spriteFile);
-        localSprite = new Sprite(spriteTexture);
+        localSprite = new Sprite(playerAnimate.idle());
     }
 
     //accsessor for xSpd
@@ -145,6 +139,7 @@ public class Player {
         if (getY() > 0) {
             inAir = true;
             addToYspd(-0.5f);
+            localSprite = playerAnimate.jump();
         }
         if (getY() <= 0) {
             if (getY() < 0) {
@@ -156,13 +151,21 @@ public class Player {
                 jumps = 4;
                 inAir = false;
             }
+            else
+              localSprite = playerAnimate.idle();
+            
         }
-
+        
         //update x and y location
         setLogicalX(getX() + getXspd());
         setLogicalY(getY() + getYspd());
         localSprite.setX(getX());
         localSprite.setY(getY());
+        
     }
+    
+    
+    
 
 }
+
