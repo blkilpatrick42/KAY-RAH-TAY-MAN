@@ -4,6 +4,7 @@ and punches raindrops. An executable JAR of the game is hosted here:
 https://drive.google.com/file/d/0B76Wq9eNxd54dklLdWlmZlFxMGM/view
 
 CONTROLS:
+
 A and D to move left and right
 
 SPACE to jump
