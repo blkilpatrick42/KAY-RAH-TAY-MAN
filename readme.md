@@ -1,4 +1,3 @@
-*KAY-RAH-TAY-MAN
 Kay-Rah-Tay-Man is the course group project for an Object Oriented Design course. 
 It is a simple and colorful action game where the player controls a Karate Master
 and punches raindrops. An executable JAR of the game is hosted here:
